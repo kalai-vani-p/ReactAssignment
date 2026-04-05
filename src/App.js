@@ -2,6 +2,7 @@ import Loader from "./components/Loader";
 import useTransactionsHook from "./customHooks/useTransactionshook";
 import CommonTable from "../src/components/CommonTable";
 import { logger } from "./utils/logger";
+import ErrorDisplay from "../src/components/ErrorDisplay";
 
 const DEFAULT_EMPTY_ARRAY = [];
 const CONTAINER_STYLE = { padding: "20px" };
@@ -19,7 +20,7 @@ const App = () => {
 
   if (error) {
     logger.error("App Error:", error);
-    return <div>{error?.message || "Something went wrong"}</div>;
+    return <ErrorDisplay message={error?.message} />;
   }
 
   // Ensure consistent order (latest first if date exists)
