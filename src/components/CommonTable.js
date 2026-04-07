@@ -1,29 +1,32 @@
-import React, { useState } from "react";
-import PropTypes from "prop-types";
+import React, { useState, useMemo } from "react";
 import {
   Container,
   Paper,
-  Typography,
-  Box,
   Tabs,
   Tab,
-  TextField,
   Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  TablePagination,
-  TableSortLabel,
-  InputAdornment,
+  TableContainer,
   Card,
   CardContent,
-  TableContainer
+  Typography,
+  Box,
 } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
-import { logger } from "../utils/logger";
-import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
+import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 
+import TableHeader from "./table/TableHeader";
+import TableBodyComponent from "./table/TableBodyComponent";
+import TableSearch from "./table/TableSearch";
+import TablePaginationComponent from "./table/TablePaginationComponent";
+/**
+ * Reusable table component with tabs, search, sorting, and pagination
+ * @component
+ * @param {Object} props
+ * @param {Array<Object>} props.tabs - Array of tab configurations
+ * @param {string} props.tabs[].label - Tab label
+ * @param {Array<Object>} props.tabs[].data - Data for the table
+ * @param {Array<Object>} props.tabs[].columns - Column configuration
+ * @returns {JSX.Element} Rendered table with multiple features
+ */
 const CommonTable = ({ tabs }) => {
   const [tabIndex, setTabIndex] = useState(0);
   const [search, setSearch] = useState("");
@@ -31,53 +34,33 @@ const CommonTable = ({ tabs }) => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [order, setOrder] = useState("asc");
   const [orderBy, setOrderBy] = useState("id");
-  const [hasError, setHasError] = useState(false);
 
   const activeTab = tabs?.[tabIndex] || { data: [], columns: [] };
 
-  const filteredData = React.useMemo(() => {
-    try {
-      const source = Array.isArray(activeTab.data) ? activeTab.data : [];
-      if (!search) return source;
-      return source.filter((item) =>
-        Object.values(item).some((v) =>
-          String(v).toLowerCase().includes(search.toLowerCase())
-        )
-      );
-    } catch (error) {
-      logger.error("Filtering error", error);
-      setHasError(true);
-      return [];
-    }
+  const filteredData = useMemo(() => {
+    const source = Array.isArray(activeTab.data) ? activeTab.data : [];
+
+    if (!search) return source;
+
+    return source.filter((item) =>
+      Object.values(item).some((v) =>
+        String(v).toLowerCase().includes(search.toLowerCase())
+      )
+    );
   }, [activeTab.data, search]);
 
-  const paginatedData = React.useMemo(() => {
-    try {
-      const sorted = [...filteredData].sort((a, b) => {
-        const aVal = a?.[orderBy];
-        const bVal = b?.[orderBy];
-        if (aVal == null || bVal == null) return 0;
-        if (aVal < bVal) return order === "asc" ? -1 : 1;
-        if (aVal > bVal) return order === "asc" ? 1 : -1;
-        return 0;
-      });
-      return sorted.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
-    } catch (error) {
-      logger.error("Sorting/Pagination error", error);
-      setHasError(true);
-      return [];
-    }
+  const paginatedData = useMemo(() => {
+    const sorted = [...filteredData].sort((a, b) => {
+      const aVal = a?.[orderBy];
+      const bVal = b?.[orderBy];
+
+      if (aVal < bVal) return order === "asc" ? -1 : 1;
+      if (aVal > bVal) return order === "asc" ? 1 : -1;
+      return 0;
+    });
+
+    return sorted.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
   }, [filteredData, order, orderBy, page, rowsPerPage]);
-
-  const handleTabChange = (_, value) => {
-    setTabIndex(value);
-    setPage(0);
-  };
-
-  const handleSearchChange = (e) => {
-    setSearch(e.target.value);
-    setPage(0);
-  };
 
   const handleSort = (field) => {
     if (orderBy === field) {
@@ -88,22 +71,9 @@ const CommonTable = ({ tabs }) => {
     }
   };
 
-  const handleRowsPerPageChange = (e) => {
-    setRowsPerPage(Number(e.target.value));
-    setPage(0);
-  };
-
-  const formatUSD = (value) => {
-    if (typeof value !== "number" || isNaN(value)) return value;
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(value);
-  };
-
   return (
     <Container maxWidth={false} sx={{ mt: 1, px: 1 }}>
-      {/* Header Card */}
+      {/* Header */}
       <Card sx={{ mb: 1, borderRadius: 2, boxShadow: 3 }}>
         <CardContent sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           <EmojiEventsIcon color="primary" />
@@ -118,7 +88,7 @@ const CommonTable = ({ tabs }) => {
         </CardContent>
       </Card>
 
-      {/* Tabs + Table */}
+      {/* Table */}
       <Paper
         sx={{
           p: 2,
@@ -127,126 +97,50 @@ const CommonTable = ({ tabs }) => {
           boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
         }}
       >
-        <Tabs value={tabIndex} onChange={handleTabChange}>
+        <Tabs value={tabIndex} onChange={(_, v) => setTabIndex(v)}>
           {tabs.map((t, i) => (
-            <Tab key={t.label || i} label={t.label} />
+            <Tab key={i} label={t.label} />
           ))}
         </Tabs>
 
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "flex-end",
-            mb: 1,
-            flexWrap: "wrap",
+        <TableSearch
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(0);
           }}
-        >
-          <TextField
-            size="small"
-            placeholder={`Search ${activeTab?.label || ""}`}
-            value={search}
-            onChange={handleSearchChange}
-            sx={{ width: { xs: "100%", sm: 250 }, py: 1 }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon fontSize="small" />
-                </InputAdornment>
-              ),
-            }}
-          />
-        </Box>
+          label={activeTab.label}
+        />
 
         <TableContainer sx={{ maxHeight: 1000, overflowX: "auto" }}>
           <Table stickyHeader>
-            <TableHead>
-              <TableRow sx={{ backgroundColor: "#f1f3f5" }}>
-                {activeTab.columns.map((c) => (
-                  <TableCell
-                    key={c.field}
-                    sx={{
-                      fontWeight: 700,
-                      fontSize: { xs: 12, sm: 14 },
-                      color: "#333",
-                      borderBottom: "2px solid #dee2e6",
-                      display: c.hideOnMobile
-                        ? { xs: "none", sm: "table-cell" }
-                        : "table-cell",
-                    }}
-                  >
-                    <TableSortLabel
-                      active={orderBy === c.field}
-                      direction={orderBy === c.field ? order : "asc"}
-                      onClick={() => handleSort(c.field)}
-                    >
-                      {c.header}
-                    </TableSortLabel>
-                  </TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
+            <TableHeader
+              columns={activeTab.columns}
+              order={order}
+              orderBy={orderBy}
+              onSort={handleSort}
+            />
 
-            <TableBody>
-              {paginatedData.length ? (
-                paginatedData.map((row, i) => (
-                  <TableRow
-                    key={row.id || i}
-                    hover
-                    sx={{
-                      backgroundColor: i % 2 === 0 ? "#ffffff" : "#f8f9fa",
-                    }}
-                  >
-                    {activeTab.columns.map((c) => (
-                      <TableCell
-                        key={c.field}
-                        sx={{
-                          fontSize: { xs: 12, sm: 13 },
-                          color: "#444",
-                          borderBottom: "1px solid #eee",
-                          py: { xs: 1, sm: 2 },    // vertical padding
-                          px: { xs: 1, sm: 2 },    // horizontal padding
-                          display: c.hideOnMobile
-                            ? { xs: "none", sm: "table-cell" }
-                            : "table-cell",
-                        }}
-                      >
-                        {c.field === "price"
-                          ? formatUSD(row?.[c.field])
-                          : row?.[c.field] ?? "-"}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={activeTab.columns.length}
-                    align="center"
-                    sx={{ py: 3, color: "#888" }}
-                  >
-                    No data found
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
+            <TableBodyComponent
+              data={paginatedData}
+              columns={activeTab.columns}
+            />
           </Table>
         </TableContainer>
 
-        <TablePagination
-          component="div"
+        <TablePaginationComponent
           count={filteredData.length}
           page={page}
-          onPageChange={(_, p) => setPage(p)}
           rowsPerPage={rowsPerPage}
-          onRowsPerPageChange={handleRowsPerPageChange}
+          onPageChange={(_, p) => setPage(p)}
+          onRowsPerPageChange={(e) => {
+            setRowsPerPage(Number(e.target.value));
+            setPage(0);
+          }}
         />
       </Paper>
     </Container>
   );
-};
-
-CommonTable.propTypes = {
-  tabs: PropTypes.array.isRequired,
 };
 
 export default CommonTable;

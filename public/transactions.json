@@ -1,4 +1,4 @@
-export const transactions = [
+[
     {
         "transactionId": "T0001",
         "customerId": "C004",

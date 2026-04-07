@@ -1,51 +1,16 @@
-import { logger } from "./logger";
-
-/**
- * Calculate reward points based on transaction amount
- * @param {number} amount
- * @returns {number}
- */
 export const calculatePoints = (amount) => {
-  try {
-    const numericAmount = Number(amount);
+  const value = Number(amount);
 
-    // Validate input
-    if (!Number.isFinite(numericAmount) || numericAmount <= 50) {
-      return 0;
-    }
+  if (!Number.isFinite(value) || value <= 50) return 0;
 
-    let rewardPoints = 0;
+  if (value > 100) return Math.floor((value - 100) * 2 + 50);
 
-    if (numericAmount > 100) {
-      rewardPoints += (numericAmount - 100) * 2;
-      rewardPoints += 50;
-    } else {
-      rewardPoints += numericAmount - 50;
-    }
-
-    const finalPoints = Math.floor(rewardPoints);
-
-    logger.debug("Calculated points:", {
-      amount: numericAmount,
-      points: finalPoints,
-    });
-
-    return finalPoints;
-  } catch (error) {
-    logger.error("Error calculating points", error);
-    return 0;
-  }
+  return Math.floor(value - 50);
 };
 
-/**
- * Safely parse date and return structured values
- */
 const getMonthYear = (dateValue) => {
   const date = new Date(dateValue);
-
-  if (isNaN(date)) {
-    return null;
-  }
+  if (isNaN(date)) return null;
 
   return {
     month: String(date.getMonth() + 1).padStart(2, "0"),
@@ -53,79 +18,45 @@ const getMonthYear = (dateValue) => {
   };
 };
 
-/**
- * Group transactions by customer + month
- * @param {Array} data
- * @returns {Array}
- */
 export const groupByMonths = (data = []) => {
-  try {
-    const result = data.reduce((acc, item) => {
-      const dateInfo = getMonthYear(item?.date);
+  const map = {};
 
-      if (!dateInfo || !item?.customerId) {
-        return acc;
-      }
+  data.forEach((item) => {
+    const info = getMonthYear(item.date);
+    if (!info) return;
 
-      const key = `${item.customerId}-${dateInfo.year}-${dateInfo.month}`;
+    const key = `${item.customerId}-${info.year}-${info.month}`;
 
-      if (!acc[key]) {
-        acc[key] = {
-          customerId: item.customerId,
-          customerName: item.customerName,
-          month: dateInfo.month,
-          year: dateInfo.year,
-          points: 0,
-        };
-      }
+    if (!map[key]) {
+      map[key] = {
+        customerId: item.customerId,
+        customerName: item.customerName,
+        month: info.month,
+        year: info.year,
+        points: 0,
+      };
+    }
 
-      acc[key].points += Number(item.points) || 0;
+    map[key].points += item.points || 0;
+  });
 
-      return acc;
-    }, {});
-
-    // Ensure consistent order
-    return Object.values(result).sort(
-      (a, b) =>
-        a.customerId - b.customerId ||
-        a.year - b.year ||
-        a.month.localeCompare(b.month)
-    );
-  } catch (error) {
-    logger.error("Error grouping by months", error);
-    return [];
-  }
+  return Object.values(map);
 };
 
-/**
- * Group total points by customer
- * @param {Array} data
- * @returns {Array}
- */
 export const groupByTotal = (data = []) => {
-  try {
-    const result = data.reduce((acc, item) => {
-      if (!item?.customerId) return acc;
+  const map = {};
 
-      if (!acc[item.customerId]) {
-        acc[item.customerId] = {
-          customerId: item.customerId,
-          customerName: item.customerName,
-          points: 0,
-        };
-      }
+  data.forEach((item) => {
+    if (!map[item.customerId]) {
+      map[item.customerId] = {
+        customerId: item.customerId,
+        customerName: item.customerName,
+        points: 0,
+      };
+    }
 
-      acc[item.customerId].points += Number(item.points) || 0;
+    map[item.customerId].points += item.points || 0;
+  });
 
-      return acc;
-    }, {});
-
-    // Ensure consistent order
-    return Object.values(result).sort(
-      (a, b) => a.customerId - b.customerId
-    );
-  } catch (error) {
-    logger.error("Error grouping totals", error);
-    return [];
-  }
+  return Object.values(map);
 };

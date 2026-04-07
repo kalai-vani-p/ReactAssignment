@@ -1,7 +1,13 @@
 import React from "react";
 import { Box, Typography } from "@mui/material";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
-
+/**
+ * Error display component to show fallback UI
+ * @component
+ * @param {Object} props
+ * @param {string} props.message - Error message to display
+ * @returns {JSX.Element} Rendered error UI
+ */
 export default function ErrorDisplay({ message }) {
   return (
     <Box

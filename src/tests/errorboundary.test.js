@@ -1,21 +1,20 @@
 import { render, screen } from "@testing-library/react";
 import ErrorBoundary from "../components/ErrorBoundary";
 
-// Component that throws error
 const ProblemChild = () => {
-  throw new Error("Test error");
+  throw new Error("Error");
 };
 
 describe("ErrorBoundary", () => {
   beforeEach(() => {
-    jest.spyOn(console, "error").mockImplementation(() => {}); // error logs
+    jest.spyOn(console, "error").mockImplementation(() => {});
   });
 
   afterEach(() => {
-    jest.restoreAllMocks(); // restore after test
+    jest.restoreAllMocks();
   });
 
-  test("renders fallback UI on error", () => {
+  test("renders fallback UI", () => {
     render(
       <ErrorBoundary>
         <ProblemChild />

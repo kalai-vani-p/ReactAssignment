@@ -1,5 +1,9 @@
 import React from "react";
-// loader component displayed during data fetching
+/**
+ * Loader component displayed during data fetching
+ * @component
+ * @returns {JSX.Element} Loading indicator
+ */
 const Loader = () =><div>Loading...</div>;
 
 export default Loader;

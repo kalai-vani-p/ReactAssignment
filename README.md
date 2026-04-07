@@ -11,14 +11,17 @@ Reward Program Rules:
 The dashboard provides a clear, interactive view of customer spending and corresponding reward points, enabling businesses to better understand and engage their customer base.
 
 ## Features
-   - View all transactions with reward points
-   - Track monthly and total rewards per customer
-   - Search, sort, and paginate data
-   - Optimized with useMemo for performance
-   - Tested with Jest & React Testing Library
+   - View all transactions with calculated reward points
+   - Track monthly rewards per customer
+   - Track total rewards per customer
+   - Search, sort, and paginate data efficiently
+   - Responsive UI with Material-UI
+   - Performance optimized using useMemo
+   - Robust error handling with Error Boundary
+   - Comprehensive unit testing with Jest & React Testing Library
 
 ## Tech Stack
-    - React JS (JavaScript only)
+    - React JS (JavaScript)
     - Material-UI
     - Jest + React Testing Library
 
@@ -33,65 +36,76 @@ The dashboard provides a clear, interactive view of customer spending and corres
 ##  Architecture Layers
 
 ### 1️ Presentation Layer (UI)
-    - Located in `components/`
-    - Responsible for UI
-    - Includes reusable components like Tables, Loaders
+    - Located in components/
+    - Responsible for rendering UI
+    - Includes reusable components such as:
+        - Table components (Header, Body, Pagination, Search)
+        - Loader
+        - Error display
 
 ### 2️ Business Logic Layer
-    - Located in `utils/`
-    - Contains pure functions Like,
-        - `calculatePoints`
-        - `groupByMonths`
-        - `groupByTotal`
+    - Located in utils/
+    - Contains pure functions:
+        - calculatePoints – Calculates reward points
+        - groupByMonths – Aggregates monthly rewards
+        - groupByTotal – Aggregates total rewards per customer
 
 ### 3️ Data Layer
-    - Uses static sample data located in sampleData/transactions.json
+    - Fetches data from public/transactions.json via API (fetch)
+    - Simulates real backend interaction
 
 ### 4️ Hooks Layer
-    - Located in the customHooks
-    - Responsible for abstracting reusable logic across the application
+    - Located in hooks/
+    - Handles reusable logic and state management:
+    - useTransactions – Fetches and processes transaction data
 
 ### 5️ Error Handling Layer
-    - `ErrorBoundary/`
-    - Captures runtime errors and prevents app crashes
+    - Implemented using ErrorBoundary
+    - Prevents application crashes and displays fallback UI
 
 ## Approach
-    - Used pure functions for calculation
-    - Used map() for aggregation
+    - Used pure functions for business logic (no side effects)
+    - Applied separation of concerns (UI, logic, API, hooks)
     - Used useMemo for performance optimization
-    - Separated logic (utils), UI (components), and API (services)
+    - Implemented reusable and modular components
+    - Followed clean and scalable folder structure
 
 ## Edge Cases Handled
-    - Decimal values (100.4 → 50 points)
-    - Invalid inputs (null, undefined)
-    - Empty data
-    - Multiple customers
-    - Different months and years
+    - Decimal values (e.g., 100.4 → valid reward calculation)
+    - Invalid inputs (null, undefined, non-numeric values)
+    - Empty dataset handling
+    - Multiple customers with overlapping months
+    - Invalid API responses
+    - Error handling and fallback UI
 
 ## Screenshots
 
 ### Dashboard
-![Dashboard](src/screenshots/Dashboard.png)
+![Dashboard](src/screenShots/Dashboard.png)
 
 ### Transactions 
-![Transactions](src/screenshots/TranscationTable.png)
+![Transactions](src/screenShots/TranscationTable.png)
 
 ### Monthly Rewards
-![Monthly](src/screenshots/MonthlyTable.png)
+![Monthly](src/screenShots/MonthlyTable.png)
 
 ### Total Rewards
-![Total](src/screenshots/TotalTable.png)
+![Total](src/screenShots/TotalTable.png)
 
 ### Searching
-![Search](src/screenshots/Search.png)
+![Search](src/screenShots/Search.png)
 
 ### Sorting
-![Sorting](src/screenshots/Sorting.png)
+![Sorting](src/screenShots/Sorting.png)
 
 ### Error Boundary
 
-![Error Boundary](src/screenshots/Error.png)
+![Error Boundary](src/screenShots/Error.png)
 
 ### Test Results
 
-![Test Results](src/screenshots/Testcase.png)
+![Test Results](src/screenShots/Testcase.png)
+
+### Test Coverage Results
+
+![Test Results](src/screenShots/TestCoverage.png)

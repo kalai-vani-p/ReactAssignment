@@ -1,7 +1,13 @@
 import React from "react";
 import { logger } from "../utils/logger";
 import ErrorDisplay from "../components/ErrorDisplay";
-
+/**
+ * Error Boundary component to catch runtime errors in child components
+ * @component
+ * @extends React.Component
+ * @param {Object} props
+ * @param {React.ReactNode} props.children - Child components to be wrapped
+ */
 class ErrorBoundary extends React.Component{
     constructor(props){
         super(props);
